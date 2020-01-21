@@ -1,13 +1,5 @@
----
-title: "Variant-specific inflation factors: a tutorial"
-author: "Tamar Sofer"
-header-includes:
-    - \usepackage{setspace}\doublespacing
-date: "2020-01-21"
-output: 
-  html_document:
-    keep_md: true
----
+Variant-specific inflation factors: a tutorial
+----------------------------------------------
 
 
 
@@ -273,7 +265,7 @@ qq_plot_by_region(pval_df = pval_df[,c("homogeneous_variance"), drop = FALSE],
 ```
 ## Saving 7 x 5 in image
 ```
-\includegraphics{qq_plots_homo_var.pdf}
+![qq_plots_homo_Var](qq_plots_homo_var.pdf)
 
 # Performing associating testing: heterogeneos variance model
 
@@ -316,7 +308,8 @@ qq_plot_by_region(pval_df = pval_df[,c("homogeneous_variance","stratified_varian
 ```
 ## Saving 7 x 5 in image
 ```
-\includegraphics{qq_plots_homo_strat_var.pdf}
+
+![qq_plots_homo_Var](qq_plots_homo_strat_var.pdf)
 
 # Final note
 The figures here may not be very impressive. This is because we used a very small dataset, with a small number of people and a small number of variants. For the stratified variance model, this is a small number of people to estimate the group-specific variances. This is likely what causes the perhaps deflation pattern seen in the stratified variance model in the "inflated" variants category. 
