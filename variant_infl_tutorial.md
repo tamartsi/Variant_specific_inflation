@@ -1,16 +1,18 @@
-Variant-specific inflation factors: a tutorial
+# Variant-specific inflation factors: a tutorial
 ----------------------------------------------
 
 
 
-# About this tutorial 
+About this tutorial 
+-------------------
 This tutorial demonstrates how to use the R functions provided with the manuscript "Population Stratification at the Phenotypic Variance level and Implication for the Analysis of Whole Genome Sequencing Data from Multiple Studies" to investigate potential mis-calibration of test statistics when testing genetic variant associations with a quantitative trait. P-values may be miscalibrated when individual-level data from multiple studies, or multiple race/ethnic groups are pooled together, and both allele frequencies and trait residual variances differ between the groups.
 
 In what follows, we will use data that were simulated in advance to compute residual variances and variant allele frequencies, and to tests variant associations. Then, we will use this information to generate a figure with multiple panels of QQ-plots, each demonstrating inflation patterns in a different set of genetic variants. 
 
 Note: this tutorial uses genetic data save on a GDS file, and therefore, uses a specific set of R function to perform tasks such as association testing. You can use other tools and skip to the point where you already have allele frquencies and p-values computed, even if they were computed in another software. 
 
-# Preparing for analysis based on simulated data
+Preparing for analysis based on simulated data
+----------------------------------------------
 In the following code we load packages, sources functions used, and load the simulated data. 
 
 Clean up the workspace, load required packages:
@@ -198,7 +200,8 @@ eafs <- do.call(cbind, freq_list)
 eafs <- eafs[,names(trait_SDs_vec)]
 ```
 
-# Computing approximate inflation factors baed on allele frequencies, sample sizes, and residuals standard deviations
+Computing approximate inflation factors baed on allele frequencies, sample sizes, and residuals standard deviations
+-------------------------------------------------------------------------------------------------------------------
 Here we use the function \texttt{compute\_variant\_inflation\_factor} which we provide.
 
 
@@ -218,7 +221,8 @@ exp_inf <- data.frame(variant_id = snpID,
                       stringsAsFactors = FALSE)
 ```
 
-# Performing associating testing: homogeneous variance model
+Performing associating testing: homogeneous variance model
+----------------------------------------------------------
 We use the R/Bioconductor GENESIS package. We first fit a "null model", and then use it for association testing. In the code, we fit the null model twice, because we use the fully-adjusted two stage procedure described in Sofer et al. (2019, Gen Epi).
 
 ```r
@@ -243,7 +247,8 @@ assoc_homogeneous <- assocTestSingle(iterator, nullmod_homogeneous_rn)
 close(gds)
 ```
 
-# Making a QQ-plot figure by categories of inflation factors: only homogeneous variance model
+Making a QQ-plot figure by categories of inflation factors: only homogeneous variance model
+-------------------------------------------------------------------------------------------
 We use the function \texttt{qq\_plot\_by\_region} to visualize inflation in sets of genetic variants. We use the individual inflation factors that we compued, and define the value for categorizing a variant as "inflated": we used 1.03 and higher; the value for which we categories a variant as "deflated": we used 0.97 and lower. And we provide a file name for the figure to print to. 
 
 Note that you can include results from a few different models (i.e. more than two models) according to the number of columns in the R \texttt{data.frame} continaining p-values. 
@@ -267,7 +272,8 @@ qq_plot_by_region(pval_df = pval_df[,c("homogeneous_variance"), drop = FALSE],
 ```
 ![qq_plots_homo_Var](qq_plots_homo_var.pdf)
 
-# Performing associating testing: heterogeneos variance model
+Performing associating testing: heterogeneos variance model
+-----------------------------------------------------------
 
 ```r
 nullmod_hetero <- fitNullModel(phen, 
@@ -288,7 +294,8 @@ assoc_hetero <- assocTestSingle(iterator, nullmod_hetero_rn)
 close(gds)
 ```
 
-# Making a QQ-plot figure by categories of inflation factors: both homogeneous and stratified variance model
+Making a QQ-plot figure by categories of inflation factors: both homogeneous and stratified variance model
+----------------------------------------------------------------------------------------------------------
 
 ```r
 pval_df <- data.frame(variant_id = assoc_homogeneous$variant.id,	
@@ -315,7 +322,8 @@ qq_plot_by_region(pval_df = pval_df[,c("homogeneous_variance","stratified_varian
 The figures here may not be very impressive. This is because we used a very small dataset, with a small number of people and a small number of variants. For the stratified variance model, this is a small number of people to estimate the group-specific variances. This is likely what causes the perhaps deflation pattern seen in the stratified variance model in the "inflated" variants category. 
 
 
-# Record R package versions
+Record R package versions
+-------------------------
 
 ```r
 sessionInfo()
