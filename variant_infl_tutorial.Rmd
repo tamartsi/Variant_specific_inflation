@@ -5,8 +5,8 @@ header-includes:
     - \usepackage{setspace}\doublespacing
 date: "`r Sys.Date()`"
 output: 
-  html_document:
-    keep_md: true
+  pdf_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
