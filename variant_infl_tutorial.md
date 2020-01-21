@@ -129,7 +129,7 @@ colnames(geno) <- scanID
 close(gds)
 ```
 
-Load the phenotype data. The data was simulated and stored in a data frame which we will call \texttt{phen}. The quantitative trait we will use is called \texttt{trait}. It the simulations, we assume that there are three different groups, \texttt{g1, g2, g3}, each has different error standard deviation.  Assuming that in genetic analysis we will only adjust for age, we regress it on age and take the residuals to compute trait standard deviation. 
+Load the phenotype data. The data was simulated and stored in a data frame which we will call *phen*. The quantitative trait we will use is called *trait*. It the simulations, we assume that there are three different groups, *g1, g2, g3*, each has different error standard deviation.  Assuming that in genetic analysis we will only adjust for age, we regress it on age and take the residuals to compute trait standard deviation. 
 
 ```r
 # load the simulated data:
@@ -202,7 +202,7 @@ eafs <- eafs[,names(trait_SDs_vec)]
 
 Computing approximate inflation factors baed on allele frequencies, sample sizes, and residuals standard deviations
 -------------------------------------------------------------------------------------------------------------------
-Here we use the function \texttt{compute\_variant\_inflation\_factor} which we provide.
+Here we use the function *compute\_variant\_inflation\_factor* which we provide.
 
 
 ```r
@@ -249,9 +249,9 @@ close(gds)
 
 Making a QQ-plot figure by categories of inflation factors: only homogeneous variance model
 -------------------------------------------------------------------------------------------
-We use the function \texttt{qq\_plot\_by\_region} to visualize inflation in sets of genetic variants. We use the individual inflation factors that we compued, and define the value for categorizing a variant as "inflated": we used 1.03 and higher; the value for which we categories a variant as "deflated": we used 0.97 and lower. And we provide a file name for the figure to print to. 
+We use the function *qq\_plot\_by\_region* to visualize inflation in sets of genetic variants. We use the individual inflation factors that we compued, and define the value for categorizing a variant as "inflated": we used 1.03 and higher; the value for which we categories a variant as "deflated": we used 0.97 and lower. And we provide a file name for the figure to print to. 
 
-Note that you can include results from a few different models (i.e. more than two models) according to the number of columns in the R \texttt{data.frame} continaining p-values. 
+Note that you can include results from a few different models (i.e. more than two models) according to the number of columns in the R *data.frame* continaining p-values. 
 
 
 ```r
