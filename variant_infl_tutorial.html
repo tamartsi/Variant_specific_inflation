@@ -11,7 +11,7 @@
 
 <meta name="author" content="Tamar Sofer" />
 
-<meta name="date" content="2020-01-21" />
+<meta name="date" content="2020-03-02" />
 
 <title>Variant-specific inflation factors: a tutorial</title>
 
@@ -365,59 +365,43 @@ summary {
 
 <h1 class="title toc-ignore">Variant-specific inflation factors: a tutorial</h1>
 <h4 class="author">Tamar Sofer</h4>
-<h4 class="date">2020-01-21</h4>
+<h4 class="date">2020-03-02</h4>
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#about-this-tutorial">About this tutorial</a></li>
+<li><a href="#preparing-for-analysis-based-on-simulated-data">Preparing for analysis based on simulated data</a></li>
+<li><a href="#computing-approximate-inflation-factors-based-on-allele-frequencies-sample-sizes-and-residual-standard-deviations">Computing approximate inflation factors based on allele frequencies, sample sizes, and residual standard deviations</a></li>
+<li><a href="#performing-associating-testing-homogeneous-variance-model">Performing associating testing: homogeneous variance model</a></li>
+<li><a href="#making-a-qq-plot-figure-by-categories-of-inflation-factors-only-homogeneous-variance-model">Making a QQ-plot figure by categories of inflation factors: only homogeneous variance model</a></li>
+<li><a href="#performing-associating-testing-heterogeneos-variance-model">Performing associating testing: heterogeneos variance model</a></li>
+<li><a href="#making-a-qq-plot-figure-by-categories-of-inflation-factors-both-homogeneous-and-stratified-variance-models">Making a QQ-plot figure by categories of inflation factors: both homogeneous and stratified variance models</a></li>
+<li><a href="#final-note">Final note</a></li>
+<li><a href="#record-r-package-versions">Record R package versions</a></li>
+</ul>
+</div>
 
 <div id="about-this-tutorial" class="section level1">
 <h1>About this tutorial</h1>
-<p>This tutorial demonstrates how to use the R functions provided with the manuscript “Population Stratification at the Phenotypic Variance level and Implication for the Analysis of Whole Genome Sequencing Data from Multiple Studies” to investigate potential mis-calibration of test statistics when testing genetic variant associations with a quantitative trait. P-values may be miscalibrated when individual-level data from multiple studies, or multiple race/ethnic groups are pooled together, and both allele frequencies and trait residual variances differ between the groups.</p>
-<p>In what follows, we will use data that were simulated in advance to compute residual variances and variant allele frequencies, and to tests variant associations. Then, we will use this information to generate a figure with multiple panels of QQ-plots, each demonstrating inflation patterns in a different set of genetic variants.</p>
-<p>Note: this tutorial uses genetic data save on a GDS file, and therefore, uses a specific set of R function to perform tasks such as association testing. You can use other tools and skip to the point where you already have allele frquencies and p-values computed, even if they were computed in another software.</p>
+<p>This tutorial demonstrates how to use the R functions provided with the manuscript “Population Stratification at the Phenotypic Variance level and Implication for the Analysis of Whole Genome Sequencing Data from Multiple Studies” to investigate potential mis-calibration of test statistics when testing genetic variant associations with a quantitative trait. P-values may be miscalibrated when individual-level data from multiple studies, or when multiple race/ethnic groups are pooled together, and both allele frequencies and trait residual variances differ between the groups.</p>
+<p>In what follows, we will use data that were simulated in advance to compute residual variances and variant allele frequencies, and to test variant associations. Then, we will use this information to generate a figure with multiple panels of QQ-plots, each demonstrating inflation patterns in a different set of genetic variants.</p>
+<p>Note: this tutorial uses genetic data saved on a GDS file, and therefore, uses a specific set of R functions to perform tasks such as association testing. You can use other tools and skip to the point where you already have allele frequencies and p-values computed, even if they were computed in another software.</p>
 </div>
 <div id="preparing-for-analysis-based-on-simulated-data" class="section level1">
 <h1>Preparing for analysis based on simulated data</h1>
-<p>In the following code we load packages, sources functions used, and load the simulated data.</p>
+<p>In the following code we load packages, “source” functions used, and load the simulated data.</p>
 <p>Clean up the workspace, load required packages:</p>
 <pre class="r"><code>rm(list = ls())
 setwd(&quot;~/Documents/GitHub/Variant_specific_inflation&quot;)
-source(&quot;variant_specific_inflation_functions.R&quot;)</code></pre>
-<pre><code>## Loading required package: tidyr</code></pre>
-<pre><code>## Loading required package: data.table</code></pre>
-<pre><code>## data.table 1.12.8 using 4 threads (see ?getDTthreads).  Latest news: r-datatable.com</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre><code>## Find out what's changed in ggplot2 at https://github.com/tidyverse/ggplot2/releases.</code></pre>
-<pre class="r"><code>require(GWASTools)</code></pre>
-<pre><code>## Loading required package: GWASTools</code></pre>
-<pre><code>## Loading required package: Biobase</code></pre>
-<pre><code>## Loading required package: BiocGenerics</code></pre>
-<pre><code>## Loading required package: parallel</code></pre>
-<pre><code>## 
-## Attaching package: 'BiocGenerics'</code></pre>
-<pre><code>## The following objects are masked from 'package:parallel':
-## 
-##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ, clusterExport, clusterMap, parApply, parCapply, parLapply, parLapplyLB, parRapply,
-##     parSapply, parSapplyLB</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     IQR, mad, sd, var, xtabs</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     anyDuplicated, append, as.data.frame, basename, cbind, colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep, grepl,
-##     intersect, is.unsorted, lapply, Map, mapply, match, mget, order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce,
-##     rownames, sapply, setdiff, sort, table, tapply, union, unique, unsplit, which, which.max, which.min</code></pre>
-<pre><code>## Welcome to Bioconductor
-## 
-##     Vignettes contain introductory material; view with 'browseVignettes()'. To cite Bioconductor, see 'citation(&quot;Biobase&quot;)', and for packages
-##     'citation(&quot;pkgname&quot;)'.</code></pre>
-<pre class="r"><code>require(dummies)</code></pre>
-<pre><code>## Loading required package: dummies</code></pre>
-<pre><code>## dummies-1.5.6 provided by Decision Patterns</code></pre>
-<pre class="r"><code>require(data.table)
+source(&quot;variant_specific_inflation_functions.R&quot;)
+
+require(GWASTools)
+require(dummies)
+require(data.table)
 require(GENESIS)</code></pre>
-<pre><code>## Loading required package: GENESIS</code></pre>
-<p>Read genotype data, stored in a SNP-GDS file.</p>
+<p>Read genotype data, stored in a SNP-GDS file:</p>
 <pre class="r"><code>gds &lt;- GdsGenotypeReader(&quot;Genotypes.gds&quot;)
 scanID &lt;- getScanID(gds)
 snpID &lt;- getSnpID(gds)
@@ -425,11 +409,9 @@ geno &lt;- getGenotype(gds)
 rownames(geno) &lt;- snpID
 colnames(geno) &lt;- scanID
 close(gds)</code></pre>
-<p>Load the phenotype data. The data was simulated and stored in a data frame which we will call . The quantitative trait we will use is called . It the simulations, we assume that there are three different groups, , each has different error standard deviation. Assuming that in genetic analysis we will only adjust for age, we regress it on age and take the residuals to compute trait standard deviation.</p>
+<p>Load the phenotype data. The data was simulated and stored in a data.frame which we will call . The quantitative trait we will use is called . It the simulations, we assume that there are three different groups, , each has different error standard deviation. Assuming that in genetic analysis we will only adjust for age, we regress the trait on age and take the residuals to compute residual standard deviation.</p>
 <pre class="r"><code># load the simulated data:
 phen &lt;- getobj(&quot;Phenotypes.RData&quot;)
-
-# compute trait standard deviations by group after regressing on age:
 phen &lt;- data.table(phen)
 
 # this is how the data looks like:
@@ -446,21 +428,22 @@ phen</code></pre>
 ## 498:   p498    g3 45.51238 65.47968
 ## 499:   p499    g3 43.73817 64.97567
 ## 500:   p500    g3 41.66499 54.46750</code></pre>
-<pre class="r"><code>trait_SDs &lt;- phen[, sd(lm(trait ~ age)$resid), by = &quot;group&quot;]
-trait_SDs_vec &lt;- trait_SDs$V1
-names(trait_SDs_vec) &lt;- trait_SDs$group
+<pre class="r"><code># compute residual standard deviations by group after regressing on age:
+residual_SDs &lt;- phen[, sd(lm(trait ~ age)$resid), by = &quot;group&quot;]
+residual_SDs_vec &lt;- residual_SDs$V1
+names(residual_SDs_vec) &lt;- residual_SDs$group
 
 # these are the estimated residual standard deviations: 
-trait_SDs_vec</code></pre>
+residual_SDs_vec</code></pre>
 <pre><code>##       g1       g2       g3 
 ## 1.074580 1.867516 3.193658</code></pre>
-<p>The approximate inflation factors will also use the sample sizes of the different groups pooled together:</p>
+<p>The approximate inflation factors will also use the sample sizes of the different groups that were pooled together:</p>
 <pre class="r"><code># compute group sample sizes
 ns &lt;- table(phen$group) 
 
-# make sure that the order matches that of the trait SDs vector:
-ns &lt;- ns[names(trait_SDs_vec)] </code></pre>
-<p>We are going to perform association testing with the genotypes. We will now compute allele frequencies across the genotypes that will be tested, to be used when computing inflation factors. In the following code, we compute allele frequencies by group. One could use built-in functions, but here is a code that assumes genotypes are on autosomes and computes the frequencies:</p>
+# make sure that the order matches that of the residual SDs vector:
+ns &lt;- ns[names(residual_SDs_vec)] </code></pre>
+<p>We are going to perform association testing with the genotypes. We will now compute allele frequencies across the genotypes that will be tested. These frequencies will be used when computing inflation factors. In the following code, we compute allele frequencies by group. One could use built-in functions, but here is a code that assumes genotypes are on autosomes and computes the frequencies:</p>
 <pre class="r"><code>freq_list &lt;- vector(mode = &quot;list&quot;, length = length(unique(phen$group)))
 names(freq_list) &lt;- unique(phen$group)
 for (i in 1:length(freq_list)){
@@ -468,14 +451,14 @@ for (i in 1:length(freq_list)){
                                                                   na.rm = TRUE)/2
 }
 
-# put the frequencies in a data frame:
+# put the frequencies in a data.frame:
 eafs &lt;- do.call(cbind, freq_list)
 
 # make sure that the columns order matches the SD vector:
-eafs &lt;- eafs[,names(trait_SDs_vec)]</code></pre>
+eafs &lt;- eafs[,names(residual_SDs_vec)]</code></pre>
 </div>
-<div id="computing-approximate-inflation-factors-baed-on-allele-frequencies-sample-sizes-and-residuals-standard-deviations" class="section level1">
-<h1>Computing approximate inflation factors baed on allele frequencies, sample sizes, and residuals standard deviations</h1>
+<div id="computing-approximate-inflation-factors-based-on-allele-frequencies-sample-sizes-and-residual-standard-deviations" class="section level1">
+<h1>Computing approximate inflation factors based on allele frequencies, sample sizes, and residual standard deviations</h1>
 <p>Here we use the function  which we provide.</p>
 <pre class="r"><code>expected_inf &lt;- rep(NA, nrow(eafs))
 for (j in 1:length(expected_inf)){
@@ -484,7 +467,7 @@ for (j in 1:length(expected_inf)){
         expected_inf[j] &lt;- 
           compute_variant_inflation_factor(eafs = cur_eafs, 
                                            ns = ns, 
-                                           sigmas = trait_SDs_vec)[[&quot;Inflation_factor&quot;]]
+                                           sigmas = residual_SDs_vec)[[&quot;Inflation_factor&quot;]]
 }
 
 exp_inf &lt;- data.frame(variant_id = snpID, 
@@ -516,8 +499,8 @@ close(gds)</code></pre>
 </div>
 <div id="making-a-qq-plot-figure-by-categories-of-inflation-factors-only-homogeneous-variance-model" class="section level1">
 <h1>Making a QQ-plot figure by categories of inflation factors: only homogeneous variance model</h1>
-<p>We use the function  to visualize inflation in sets of genetic variants. We use the individual inflation factors that we compued, and define the value for categorizing a variant as “inflated”: we used 1.03 and higher; the value for which we categories a variant as “deflated”: we used 0.97 and lower. And we provide a file name for the figure to print to.</p>
-<p>Note that you can include results from a few different models (i.e. more than two models) according to the number of columns in the R  continaining p-values.</p>
+<p>We use the function  to visualize inflation in sets of genetic variants. We use the individual inflation factors that we compued. To define the values for categorizing a variant as “inflated” we used 1.03 and higher; we set the value for which we categories a variant as “deflated” to 0.97 and lower. Finally, we provide a file name for the figure to print to.</p>
+<p>Note that you can include results from a few different models (i.e. more than two models) according to the number of columns in the R  that contain p-values.</p>
 <pre class="r"><code>pval_df &lt;- data.frame(variant_id = assoc_homogeneous$variant.id,    
                         homogeneous_variance = assoc_homogeneous$Score.pval)
 exp_inf &lt;- exp_inf[match(pval_df$variant_id, exp_inf$variant_id),]
@@ -527,7 +510,7 @@ qq_plot_by_region(pval_df = pval_df[,c(&quot;homogeneous_variance&quot;), drop =
                     inflated_val = 1.03, 
                     deflated_val = 0.97, 
                     thin_high_pvals = 1e5, 
-                    figure_file_name = &quot;qq_plots_homo_var.pdf&quot;)</code></pre>
+                    figure_file_name = &quot;qq_plots_homo_var.png&quot;)</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
 <p></p>
 </div>
@@ -550,8 +533,8 @@ iterator &lt;- GenotypeBlockIterator(genoData)
 assoc_hetero &lt;- assocTestSingle(iterator, nullmod_hetero_rn)
 close(gds)</code></pre>
 </div>
-<div id="making-a-qq-plot-figure-by-categories-of-inflation-factors-both-homogeneous-and-stratified-variance-model" class="section level1">
-<h1>Making a QQ-plot figure by categories of inflation factors: both homogeneous and stratified variance model</h1>
+<div id="making-a-qq-plot-figure-by-categories-of-inflation-factors-both-homogeneous-and-stratified-variance-models" class="section level1">
+<h1>Making a QQ-plot figure by categories of inflation factors: both homogeneous and stratified variance models</h1>
 <pre class="r"><code>pval_df &lt;- data.frame(variant_id = assoc_homogeneous$variant.id,    
                         homogeneous_variance = assoc_homogeneous$Score.pval, 
                             stratified_variance = assoc_hetero$Score.pval)
@@ -563,7 +546,7 @@ qq_plot_by_region(pval_df = pval_df[,c(&quot;homogeneous_variance&quot;,&quot;st
                     inflated_val = 1.03, 
                     deflated_val = 0.97, 
                     thin_high_pvals = 1e5, 
-                    figure_file_name = &quot;qq_plots_homo_strat_var.pdf&quot;)</code></pre>
+                    figure_file_name = &quot;qq_plots_homo_strat_var.png&quot;)</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
 <p></p>
 </div>
@@ -576,7 +559,7 @@ qq_plot_by_region(pval_df = pval_df[,c(&quot;homogeneous_variance&quot;,&quot;st
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>## R version 3.6.2 (2019-12-12)
 ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
-## Running under: macOS Catalina 10.15.2
+## Running under: macOS Catalina 10.15.3
 ## 
 ## Matrix products: default
 ## BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
@@ -607,7 +590,8 @@ qq_plot_by_region(pval_df = pval_df[,c(&quot;homogeneous_variance&quot;,&quot;st
 ## [67] logistf_1.23           codetools_0.2-16       gdsfmt_1.22.0          stats4_3.6.2           pan_1.6                glue_1.3.1            
 ## [73] evaluate_0.14          vctrs_0.2.1            nloptr_1.2.1           foreach_1.4.7          MatrixModels_0.4-1     gtable_0.3.0          
 ## [79] purrr_0.3.3            SeqArray_1.26.2        assertthat_0.2.1       xfun_0.12              broom_0.5.3            SeqVarTools_1.24.0    
-## [85] survival_3.1-8         tibble_2.1.3           iterators_1.0.12       memoise_1.1.0          IRanges_2.20.2         ellipsis_0.3.0</code></pre>
+## [85] survival_3.1-8         tibble_2.1.3           iterators_1.0.12       tinytex_0.19           memoise_1.1.0          IRanges_2.20.2        
+## [91] ellipsis_0.3.0</code></pre>
 </div>
 
 

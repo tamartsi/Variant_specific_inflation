@@ -5,8 +5,8 @@ header-includes:
     - \usepackage{setspace}\doublespacing
 date: "`r Sys.Date()`"
 output: 
-  pdf_document:
-    toc: true
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
@@ -14,14 +14,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # About this tutorial 
-This tutorial demonstrates how to use the R functions provided with the manuscript "Population Stratification at the Phenotypic Variance level and Implication for the Analysis of Whole Genome Sequencing Data from Multiple Studies" to investigate potential mis-calibration of test statistics when testing genetic variant associations with a quantitative trait. P-values may be miscalibrated when individual-level data from multiple studies, or multiple race/ethnic groups are pooled together, and both allele frequencies and trait residual variances differ between the groups.
+This tutorial demonstrates how to use the R functions provided with the manuscript "Population Stratification at the Phenotypic Variance level and Implication for the Analysis of Whole Genome Sequencing Data from Multiple Studies" to investigate potential mis-calibration of test statistics when testing genetic variant associations with a quantitative trait. P-values may be miscalibrated when individual-level data from multiple studies, or when multiple race/ethnic groups are pooled together, and both allele frequencies and trait residual variances differ between the groups.
 
-In what follows, we will use data that were simulated in advance to compute residual variances and variant allele frequencies, and to tests variant associations. Then, we will use this information to generate a figure with multiple panels of QQ-plots, each demonstrating inflation patterns in a different set of genetic variants. 
+In what follows, we will use data that were simulated in advance to compute residual variances and variant allele frequencies, and to test variant associations. Then, we will use this information to generate a figure with multiple panels of QQ-plots, each demonstrating inflation patterns in a different set of genetic variants. 
 
-Note: this tutorial uses genetic data save on a GDS file, and therefore, uses a specific set of R function to perform tasks such as association testing. You can use other tools and skip to the point where you already have allele frquencies and p-values computed, even if they were computed in another software. 
+Note: this tutorial uses genetic data saved on a GDS file, and therefore, uses a specific set of R functions to perform tasks such as association testing. You can use other tools and skip to the point where you already have allele frequencies and p-values computed, even if they were computed in another software. 
 
 # Preparing for analysis based on simulated data
-In the following code we load packages, sources functions used, and load the simulated data. 
+In the following code we load packages, "source" functions used, and load the simulated data. 
 
 Clean up the workspace, load required packages:
 ```{r}
@@ -35,7 +35,7 @@ require(data.table)
 require(GENESIS)
 ```
 
-Read genotype data, stored in a SNP-GDS file. 
+Read genotype data, stored in a SNP-GDS file: 
 ```{r}
 gds <- GdsGenotypeReader("Genotypes.gds")
 scanID <- getScanID(gds)
@@ -46,35 +46,34 @@ colnames(geno) <- scanID
 close(gds)
 ```
 
-Load the phenotype data. The data was simulated and stored in a data frame which we will call \texttt{phen}. The quantitative trait we will use is called \texttt{trait}. It the simulations, we assume that there are three different groups, \texttt{g1, g2, g3}, each has different error standard deviation.  Assuming that in genetic analysis we will only adjust for age, we regress it on age and take the residuals to compute trait standard deviation. 
+Load the phenotype data. The data was simulated and stored in a data.frame which we will call \texttt{phen}. The quantitative trait we will use is called \texttt{trait}. It the simulations, we assume that there are three different groups, \texttt{g1, g2, g3}, each has different error standard deviation.  Assuming that in genetic analysis we will only adjust for age, we regress the trait on age and take the residuals to compute residual standard deviation. 
 ```{r}
 # load the simulated data:
 phen <- getobj("Phenotypes.RData")
-
-# compute trait standard deviations by group after regressing on age:
 phen <- data.table(phen)
 
 # this is how the data looks like:
 phen
-trait_SDs <- phen[, sd(lm(trait ~ age)$resid), by = "group"]
-trait_SDs_vec <- trait_SDs$V1
-names(trait_SDs_vec) <- trait_SDs$group
+# compute residual standard deviations by group after regressing on age:
+residual_SDs <- phen[, sd(lm(trait ~ age)$resid), by = "group"]
+residual_SDs_vec <- residual_SDs$V1
+names(residual_SDs_vec) <- residual_SDs$group
 
 # these are the estimated residual standard deviations: 
-trait_SDs_vec
+residual_SDs_vec
 ```
 
-The approximate inflation factors will also use the sample sizes of the different groups pooled together:
+The approximate inflation factors will also use the sample sizes of the different groups that were pooled together:
 
 ```{r}
 # compute group sample sizes
 ns <- table(phen$group) 
 
-# make sure that the order matches that of the trait SDs vector:
-ns <- ns[names(trait_SDs_vec)] 
+# make sure that the order matches that of the residual SDs vector:
+ns <- ns[names(residual_SDs_vec)] 
 ```
 
-We are going to perform association testing with the genotypes. We will now compute allele frequencies across the genotypes that will be tested, to be used when computing inflation factors. In the following code, we compute allele frequencies by group. One could use built-in functions, but here is a code that assumes genotypes are on autosomes and computes the frequencies:
+We are going to perform association testing with the genotypes. We will now compute allele frequencies across the genotypes that will be tested. These frequencies will be used when computing inflation factors. In the following code, we compute allele frequencies by group. One could use built-in functions, but here is a code that assumes genotypes are on autosomes and computes the frequencies:
 
 ```{r}
 freq_list <- vector(mode = "list", length = length(unique(phen$group)))
@@ -84,14 +83,14 @@ for (i in 1:length(freq_list)){
 	                                                              na.rm = TRUE)/2
 }
 
-# put the frequencies in a data frame:
+# put the frequencies in a data.frame:
 eafs <- do.call(cbind, freq_list)
 
 # make sure that the columns order matches the SD vector:
-eafs <- eafs[,names(trait_SDs_vec)]
+eafs <- eafs[,names(residual_SDs_vec)]
 ```
 
-# Computing approximate inflation factors baed on allele frequencies, sample sizes, and residuals standard deviations
+# Computing approximate inflation factors based on allele frequencies, sample sizes, and residual standard deviations
 Here we use the function \texttt{compute\_variant\_inflation\_factor} which we provide.
 
 ```{r}
@@ -102,7 +101,7 @@ for (j in 1:length(expected_inf)){
 		expected_inf[j] <- 
 		  compute_variant_inflation_factor(eafs = cur_eafs, 
 		                                   ns = ns, 
-		                                   sigmas = trait_SDs_vec)[["Inflation_factor"]]
+		                                   sigmas = residual_SDs_vec)[["Inflation_factor"]]
 }
 
 exp_inf <- data.frame(variant_id = snpID, 
@@ -135,9 +134,9 @@ close(gds)
 ```
 
 # Making a QQ-plot figure by categories of inflation factors: only homogeneous variance model
-We use the function \texttt{qq\_plot\_by\_region} to visualize inflation in sets of genetic variants. We use the individual inflation factors that we compued, and define the value for categorizing a variant as "inflated": we used 1.03 and higher; the value for which we categories a variant as "deflated": we used 0.97 and lower. And we provide a file name for the figure to print to. 
+We use the function \texttt{qq\_plot\_by\_region} to visualize inflation in sets of genetic variants. We use the individual inflation factors that we compued. To define the values for categorizing a variant as "inflated" we used 1.03 and higher; we set the value for which we categories a variant as "deflated" to 0.97 and lower. Finally, we provide a file name for the figure to print to. 
 
-Note that you can include results from a few different models (i.e. more than two models) according to the number of columns in the R \texttt{data.frame} continaining p-values. 
+Note that you can include results from a few different models (i.e. more than two models) according to the number of columns in the R \texttt{data.frame} that contain p-values. 
 
 ```{r}
 pval_df <- data.frame(variant_id = assoc_homogeneous$variant.id,	
@@ -173,7 +172,7 @@ assoc_hetero <- assocTestSingle(iterator, nullmod_hetero_rn)
 close(gds)
 ```
 
-# Making a QQ-plot figure by categories of inflation factors: both homogeneous and stratified variance model
+# Making a QQ-plot figure by categories of inflation factors: both homogeneous and stratified variance models
 ```{r}
 
 pval_df <- data.frame(variant_id = assoc_homogeneous$variant.id,	
