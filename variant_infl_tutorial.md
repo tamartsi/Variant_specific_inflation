@@ -210,6 +210,8 @@ qq_plot_by_region(pval_df = pval_df[,c("homogeneous_variance"), drop = FALSE],
 
     ## Saving 7 x 5 in image
 
+![qq_plots_homo_Var](qq_plots_homo_var.pdf)
+
 Performing associating testing: heterogeneos variance model
 ===========================================================
 
@@ -251,6 +253,8 @@ qq_plot_by_region(pval_df = pval_df[,c("homogeneous_variance","stratified_varian
 ```
 
     ## Saving 7 x 5 in image
+
+![qq_plots_homo_Var](qq_plots_homo_strat_var.pdf)
 
 Final note
 ==========

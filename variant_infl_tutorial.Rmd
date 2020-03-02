@@ -5,8 +5,8 @@ header-includes:
     - \usepackage{setspace}\doublespacing
 date: "`r Sys.Date()`"
 output: 
-  md_document:
-    variant: markdown_github
+  pdf_document:
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
