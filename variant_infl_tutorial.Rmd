@@ -1,11 +1,11 @@
 ---
 title: "Variant-specific inflation factors: a tutorial"
-author: "Tamar Sofer"
+author: "Tamar Sofer et al."
 header-includes:
     - \usepackage{setspace}\doublespacing
 date: "`r Sys.Date()`"
 output: 
-  pdf_document:
+  html_document:
     toc: true
 ---
 
