@@ -54,13 +54,13 @@ phen <- data.table(phen)
 
 # this is how the data looks like:
 phen
-# compute residual standard deviations by group after regressing on age:
-residual_SDs <- phen[, sd(lm(trait ~ age)$resid), by = "group"]
-residual_SDs_vec <- residual_SDs$V1
-names(residual_SDs_vec) <- residual_SDs$group
+# compute residual variances by group after regressing on age:
+residual_vars <- phen[, var(lm(trait ~ age)$resid), by = "group"]
+residual_vars_vec <- residual_vars$V1
+names(residual_vars_vec) <- residual_vars$group
 
 # these are the estimated residual standard deviations: 
-residual_SDs_vec
+residual_vars_vec
 ```
 
 The approximate inflation factors will also use the sample sizes of the different groups that were pooled together:
@@ -70,7 +70,7 @@ The approximate inflation factors will also use the sample sizes of the differen
 ns <- table(phen$group) 
 
 # make sure that the order matches that of the residual SDs vector:
-ns <- ns[names(residual_SDs_vec)] 
+ns <- ns[names(residual_vars_vec)] 
 ```
 
 We are going to perform association testing with the genotypes. We will now compute allele frequencies across the genotypes that will be tested. These frequencies will be used when computing inflation factors. In the following code, we compute allele frequencies by group. One could use built-in functions, but here is a code that assumes genotypes are on autosomes and computes the frequencies:
@@ -87,7 +87,7 @@ for (i in 1:length(freq_list)){
 eafs <- do.call(cbind, freq_list)
 
 # make sure that the columns order matches the SD vector:
-eafs <- eafs[,names(residual_SDs_vec)]
+eafs <- eafs[,names(residual_vars_vec)]
 ```
 
 # Computing approximate inflation factors based on allele frequencies, sample sizes, and residual standard deviations
@@ -101,7 +101,7 @@ for (j in 1:length(expected_inf)){
 		expected_inf[j] <- 
 		  compute_variant_inflation_factor(eafs = cur_eafs, 
 		                                   ns = ns, 
-		                                   sigmas = residual_SDs_vec)[["Inflation_factor"]]
+		                                   sigma_sqs = residual_vars_vec)[["Inflation_factor"]]
 }
 
 exp_inf <- data.frame(variant_id = snpID, 

@@ -6,6 +6,7 @@
 #
 # Written by Tamar Sofer and Kenneth M Rice
 # 2019-11-19
+# Updated 2020-08-12
 ######################################################################################################## 
 
 require(tidyr)
@@ -15,23 +16,23 @@ require(ggplot2)
 # A function that computes the naive and the true test standard error based on 
 #                    sample sizes, frequencies, and phenotype standard deviations in multiple groups.
 #         Uses a "sandwitch" formula under heterogeneous variance model
-#         Uses standardformulat under homogeneous residual variance models.
+#         Uses standard formula under homogeneous residual variance models.
 #     To avoid constructions of large matrices, proportions are used in  lieu of repeated rows.
 # eafs: vector of effect allele frequencies in the k studies
 # ns: sample sizes in each of the k studies
-# sigmas: Residual standard deviations in each of the k studies
+# sigma_sqs: Residual variances in each of the k studies
 # beta0: intercept, default is zeo.
 # study_main_effects: length k-1 vector of study main effects; the first study is chosen to be the reference
 #     (This can usually just be a vector of zeros)
 
 compute_variant_inflation_factor <- function(eafs, 
                                              ns, 
-                                             sigmas, 
+                                             sigma_sqs, 
                                              beta0=0,
-                                             study_main_effects = rep(0, length(sigmas)-1)){
+                                             study_main_effects = rep(0, length(sigma_sqs)-1)){
    k <- length(eafs)
 
-   if( (length(study_main_effects) !=(k-1) ) | (length(ns) !=k) | (length(sigmas) !=k) ) stop("length mismatch")
+   if( (length(study_main_effects) !=(k-1) ) | (length(ns) !=k) | (length(sigma_sqs) !=k) ) stop("length mismatch")
 
   ## compute sample proportions
   sample_proportion <- ns/sum(ns)
@@ -51,15 +52,15 @@ compute_variant_inflation_factor <- function(eafs,
   props <- pr.x*pr.z
 
   Bmat <- t(xmat) %*% diag(props) %*% xmat
-  Amat <- t(xmat) %*% diag(props) %*% diag( sigmas[rep(1:k, each=3)] ) %*% xmat
+  Amat <- t(xmat) %*% diag(props) %*% diag( sigma_sqs[rep(1:k, each=3)] ) %*% xmat
 
   # sandwitch formula for computing the SE of effect size allowing for heterogeneous vairances:
   SE_true <- sqrt( (solve(Bmat) %*% Amat %*% solve(Bmat))[2,2] )
    
   # standard SE formula:
-  SE_naive <- sqrt( solve(Bmat)[2,2] * sum(props*(sigmas[rep(1:k, each=3)]) ) )
+  SE_naive <- sqrt( solve(Bmat)[2,2] * sum(props*(sigma_sqs[rep(1:k, each=3)]) ) )
 
-  c(SE_true=SE_true, SE_naive=SE_naive, Inflation_factor = SE_true/SE_naive)
+  c(SE_true=SE_true, SE_naive=SE_naive, Inflation_factor = (SE_true/SE_naive)^2)
 }
 
 
