@@ -11,7 +11,7 @@
 
 <meta name="author" content="Tamar Sofer et al." />
 
-<meta name="date" content="2020-08-12" />
+<meta name="date" content="2020-08-20" />
 
 <title>Variant-specific inflation factors: a tutorial</title>
 
@@ -365,7 +365,7 @@ summary {
 
 <h1 class="title toc-ignore">Variant-specific inflation factors: a tutorial</h1>
 <h4 class="author">Tamar Sofer et al.</h4>
-<h4 class="date">2020-08-12</h4>
+<h4 class="date">2020-08-20</h4>
 
 </div>
 
@@ -385,7 +385,7 @@ summary {
 
 <div id="about-this-tutorial" class="section level1">
 <h1>About this tutorial</h1>
-<p>This tutorial demonstrates how to use the R functions provided with the manuscript “Population Stratification at the Phenotypic Variance level and Implication for the Analysis of Whole Genome Sequencing Data from Multiple Studies” to investigate potential mis-calibration of test statistics when testing genetic variant associations with a quantitative trait. P-values may be miscalibrated when individual-level data from multiple studies, or when multiple race/ethnic groups are pooled together, and both allele frequencies and trait residual variances differ between the groups.</p>
+<p>This tutorial demonstrates how to use the R functions provided with the manuscript “Variant-Specific Inflation Factors for Assessing Population Stratification at the Phenotypic Variance Level” to investigate potential mis-calibration of test statistics when testing genetic variant associations with a quantitative trait. P-values may be miscalibrated when individual-level data from multiple studies, or when multiple race/ethnic groups are pooled together, and both allele frequencies and trait residual variances differ between the groups.</p>
 <p>In what follows, we will use data that were simulated in advance to compute residual variances and variant allele frequencies, and to test variant associations. Then, we will use this information to generate a figure with multiple panels of QQ-plots, each demonstrating inflation patterns in a different set of genetic variants.</p>
 <p>Note: this tutorial uses genetic data saved on a GDS file, and therefore, uses a specific set of R functions to perform tasks such as association testing. You can use other tools and skip to the point where you already have allele frequencies and p-values computed, even if they were computed in another software.</p>
 </div>
@@ -395,12 +395,53 @@ summary {
 <p>Clean up the workspace, load required packages:</p>
 <pre class="r"><code>rm(list = ls())
 setwd(&quot;~/Documents/GitHub/Variant_specific_inflation&quot;)
-source(&quot;variant_specific_inflation_functions.R&quot;)
-
-require(GWASTools)
-require(dummies)
-require(data.table)
+source(&quot;variant_specific_inflation_functions.R&quot;)</code></pre>
+<pre><code>## Loading required package: tidyr</code></pre>
+<pre><code>## Loading required package: data.table</code></pre>
+<pre><code>## data.table 1.12.8 using 1 threads (see ?getDTthreads).  Latest news: r-datatable.com</code></pre>
+<pre><code>## **********
+## This installation of data.table has not detected OpenMP support. It should still work but in single-threaded mode. If this is a Mac, please ensure you are using R&gt;=3.4.0 and have followed our Mac instructions here: https://github.com/Rdatatable/data.table/wiki/Installation. This warning message should not occur on Windows or Linux. If it does, please file a GitHub issue.
+## **********</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>require(GWASTools)</code></pre>
+<pre><code>## Loading required package: GWASTools</code></pre>
+<pre><code>## Loading required package: Biobase</code></pre>
+<pre><code>## Loading required package: BiocGenerics</code></pre>
+<pre><code>## Loading required package: parallel</code></pre>
+<pre><code>## 
+## Attaching package: &#39;BiocGenerics&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:parallel&#39;:
+## 
+##     clusterApply, clusterApplyLB, clusterCall,
+##     clusterEvalQ, clusterExport, clusterMap, parApply,
+##     parCapply, parLapply, parLapplyLB, parRapply,
+##     parSapply, parSapplyLB</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     IQR, mad, sd, var, xtabs</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     anyDuplicated, append, as.data.frame, basename,
+##     cbind, colnames, dirname, do.call, duplicated,
+##     eval, evalq, Filter, Find, get, grep, grepl,
+##     intersect, is.unsorted, lapply, Map, mapply, match,
+##     mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+##     Position, rank, rbind, Reduce, rownames, sapply,
+##     setdiff, sort, table, tapply, union, unique,
+##     unsplit, which, which.max, which.min</code></pre>
+<pre><code>## Welcome to Bioconductor
+## 
+##     Vignettes contain introductory material; view with
+##     &#39;browseVignettes()&#39;. To cite Bioconductor, see
+##     &#39;citation(&quot;Biobase&quot;)&#39;, and for packages
+##     &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
+<pre class="r"><code>require(dummies)</code></pre>
+<pre><code>## Loading required package: dummies</code></pre>
+<pre><code>## Warning: package &#39;dummies&#39; was built under R version 4.0.2</code></pre>
+<pre><code>## dummies-1.5.6 provided by Decision Patterns</code></pre>
+<pre class="r"><code>require(data.table)
 require(GENESIS)</code></pre>
+<pre><code>## Loading required package: GENESIS</code></pre>
 <p>Read genotype data, stored in a SNP-GDS file:</p>
 <pre class="r"><code>gds &lt;- GdsGenotypeReader(&quot;Genotypes.gds&quot;)
 scanID &lt;- getScanID(gds)
@@ -547,6 +588,10 @@ qq_plot_by_region(pval_df = pval_df[,c(&quot;homogeneous_variance&quot;,&quot;st
                     deflated_val = 0.97, 
                     thin_high_pvals = 1e5, 
                     figure_file_name = &quot;qq_plots_homo_strat_var.png&quot;)</code></pre>
+<pre><code>## Note: Using an external vector in selections is ambiguous.
+## ℹ Use `all_of(analyses_names)` instead of `analyses_names` to silence this message.
+## ℹ See &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## This message is displayed once per session.</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
 <p></p>
 </div>
@@ -569,42 +614,55 @@ qq_plot_by_region(pval_df = pval_df[,c(&quot;homogeneous_variance&quot;,&quot;st
 ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 ## 
 ## attached base packages:
-## [1] parallel  stats     graphics  grDevices utils     datasets  methods  
-## [8] base     
+## [1] parallel  stats     graphics  grDevices utils     datasets 
+## [7] methods   base     
 ## 
 ## other attached packages:
-## [1] rmarkdown_2.3       GENESIS_2.18.0      dummies_1.5.6      
-## [4] GWASTools_1.34.0    Biobase_2.48.0      BiocGenerics_0.34.0
-## [7] ggplot2_3.3.0       data.table_1.12.8   tidyr_1.1.0        
+## [1] GENESIS_2.18.0      dummies_1.5.6       GWASTools_1.34.0   
+## [4] Biobase_2.48.0      BiocGenerics_0.34.0 ggplot2_3.3.0      
+## [7] data.table_1.12.8   tidyr_1.1.0         rmarkdown_2.3      
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] bit64_0.9-7            splines_4.0.0          foreach_1.5.0         
-##  [4] assertthat_0.2.1       stats4_4.0.0           blob_1.2.1            
-##  [7] GenomeInfoDbData_1.2.3 GWASExactHW_1.01       yaml_2.2.1            
-## [10] pillar_1.4.4           RSQLite_2.2.0          backports_1.1.7       
-## [13] lattice_0.20-41        quantreg_5.55          glue_1.4.1            
-## [16] digest_0.6.25          GenomicRanges_1.40.0   XVector_0.28.0        
-## [19] colorspace_1.4-1       sandwich_2.5-1         htmltools_0.5.0       
-## [22] Matrix_1.2-18          pkgconfig_2.0.3        broom_0.5.6           
-## [25] SparseM_1.78           zlibbioc_1.34.0        purrr_0.3.4           
-## [28] scales_1.1.1           SeqVarTools_1.26.0     MatrixModels_0.4-1    
-## [31] tibble_3.0.1           mgcv_1.8-31            generics_0.0.2        
-## [34] farver_2.0.3           IRanges_2.22.2         ellipsis_0.3.1        
-## [37] withr_2.2.0            cli_2.0.2              survival_3.1-12       
-## [40] SNPRelate_1.22.0       magrittr_1.5           crayon_1.3.4          
-## [43] evaluate_0.14          memoise_1.1.0          mice_3.9.0            
-## [46] fansi_0.4.1            nlme_3.1-147           SeqArray_1.28.0       
-## [49] tools_4.0.0            lifecycle_0.2.0        stringr_1.4.0         
-## [52] S4Vectors_0.26.1       munsell_0.5.0          gdsfmt_1.24.0         
-## [55] Biostrings_2.56.0      compiler_4.0.0         GenomeInfoDb_1.24.0   
-## [58] logistf_1.23           rlang_0.4.6            grid_4.0.0            
-## [61] RCurl_1.98-1.2         iterators_1.0.12       rstudioapi_0.11       
-## [64] bitops_1.0-6           labeling_0.3           DNAcopy_1.62.0        
-## [67] gtable_0.3.0           codetools_0.2-16       DBI_1.1.0             
-## [70] R6_2.4.1               zoo_1.8-8              knitr_1.29            
-## [73] dplyr_0.8.5            bit_1.1-15.2           stringi_1.4.6         
-## [76] Rcpp_1.0.4.6           quantsmooth_1.54.0     vctrs_0.3.0           
-## [79] tidyselect_1.1.0       xfun_0.16              lmtest_0.9-37</code></pre>
+##  [1] bit64_0.9-7            splines_4.0.0         
+##  [3] foreach_1.5.0          assertthat_0.2.1      
+##  [5] stats4_4.0.0           blob_1.2.1            
+##  [7] GenomeInfoDbData_1.2.3 GWASExactHW_1.01      
+##  [9] yaml_2.2.1             pillar_1.4.4          
+## [11] RSQLite_2.2.0          backports_1.1.7       
+## [13] lattice_0.20-41        quantreg_5.55         
+## [15] glue_1.4.1             digest_0.6.25         
+## [17] GenomicRanges_1.40.0   XVector_0.28.0        
+## [19] colorspace_1.4-1       sandwich_2.5-1        
+## [21] htmltools_0.5.0        Matrix_1.2-18         
+## [23] pkgconfig_2.0.3        broom_0.5.6           
+## [25] SparseM_1.78           zlibbioc_1.34.0       
+## [27] purrr_0.3.4            scales_1.1.1          
+## [29] SeqVarTools_1.26.0     MatrixModels_0.4-1    
+## [31] tibble_3.0.1           mgcv_1.8-31           
+## [33] farver_2.0.3           generics_0.0.2        
+## [35] IRanges_2.22.2         ellipsis_0.3.1        
+## [37] withr_2.2.0            cli_2.0.2             
+## [39] SNPRelate_1.22.0       survival_3.1-12       
+## [41] magrittr_1.5           crayon_1.3.4          
+## [43] memoise_1.1.0          evaluate_0.14         
+## [45] mice_3.9.0             fansi_0.4.1           
+## [47] nlme_3.1-147           SeqArray_1.28.0       
+## [49] tools_4.0.0            lifecycle_0.2.0       
+## [51] stringr_1.4.0          S4Vectors_0.26.1      
+## [53] munsell_0.5.0          gdsfmt_1.24.0         
+## [55] Biostrings_2.56.0      compiler_4.0.0        
+## [57] GenomeInfoDb_1.24.0    logistf_1.23          
+## [59] rlang_0.4.6            grid_4.0.0            
+## [61] RCurl_1.98-1.2         iterators_1.0.12      
+## [63] labeling_0.3           bitops_1.0-6          
+## [65] DNAcopy_1.62.0         gtable_0.3.0          
+## [67] codetools_0.2-16       DBI_1.1.0             
+## [69] R6_2.4.1               zoo_1.8-8             
+## [71] knitr_1.29             dplyr_0.8.5           
+## [73] bit_1.1-15.2           stringi_1.4.6         
+## [75] Rcpp_1.0.4.6           quantsmooth_1.54.0    
+## [77] vctrs_0.3.0            tidyselect_1.1.0      
+## [79] xfun_0.16              lmtest_0.9-37</code></pre>
 </div>
 
 
